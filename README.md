@@ -9,8 +9,13 @@ Plain HTML, CSS and JavaScript with no build step:
 - `index.html`: the page
 - `app.js`: the timeline data and interactions
 - `style.css`: styles
-- `basemap.js`: draws the map's background (land, sea, lakes, rivers, Vietnam's
-  modern land borders) under the historical territories
+- `basemap.js`: the map's background under the historical territories. By
+  default it shows satellite imagery,
+  [Sentinel-2 cloudless](https://s2maps.eu) by EOX (Copernicus Sentinel data
+  2020), with NASA Blue Marble as a second choice; neither needs an API key.
+  The **Vệ tinh** button switches to a drawn map (land, sea, lakes, rivers),
+  which is also what shows offline or when the imagery cannot load. Vietnam's
+  modern land borders are drawn dashed in both.
 - `geo-data.js`: the geography `basemap.js` draws, generated from
   [Natural Earth](https://www.naturalearthdata.com/) (public domain) by
   `tools/build-geo.py` (`pip install shapely`, then `python tools/build-geo.py`)

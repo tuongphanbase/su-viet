@@ -91,13 +91,16 @@
         levels[name].rivers.push({ minZoom: +minZoom, node: el(world, 'path', { class: 'bm-river', d: pathData(list, g.precision, false) }) });
       }
     }
-    el(world, 'path', { class: 'bm-border', d: pathData(geo.borders.lines, geo.borders.precision, false) });
+    // Satellite tiles sit above the drawn land, so a tile that will not load shows land and sea, not a hole.
+    const tiles = el(svg, 'g', { class: 'bm-tiles' });
+    const worldTop = el(svg, 'g', { class: 'bm-world' });
+    el(worldTop, 'path', { class: 'bm-border', d: pathData(geo.borders.lines, geo.borders.precision, false) });
 
     const labels = el(svg, 'g', { class: 'bm-labels' });
     const data = el(svg, 'g', { class: 'bm-data' });
     const button = svg.closest('.map') && svg.closest('.map').querySelector('.map-mode');
     if (button) button.addEventListener('click', toggleMode);
-    return { svg, levels, clipUse, world, land, labels, data };
+    return { svg, levels, clipUse, world, worldTop, tiles, land, labels, data };
   }
 
   // The 1:10m "core" data is used when zoomed in and the whole view lies inside its box.
@@ -130,7 +133,7 @@
   const imagery = {
     mode: stored(MODE_KEY) === 'map' ? 'map' : 'sat',
     index: Math.max(0, IMAGERY.findIndex(s => s.id === stored(SOURCE_KEY))),
-    loaded: 0, failed: 0, tiles: new Map(), bad: new Set(), view: null, credit: null,
+    loaded: 0, tiles: new Map(), bad: new Set(), view: null, credit: null,
   };
   const satelliteOn = () => imagery.mode === 'sat' && imagery.index < IMAGERY.length;
 
@@ -139,10 +142,10 @@
     imagery.tiles.clear();
   }
 
-  // Three failed tiles and none loaded: try the next source, or fall back to the drawn map.
+  // The source looks down: try the next one, or fall back to the drawn map.
   function nextSource() {
     imagery.index++;
-    imagery.loaded = imagery.failed = 0;
+    imagery.loaded = 0;
     clearTiles();
     showImagery();
   }
@@ -159,26 +162,33 @@
         wanted.add(key);
         let img = imagery.tiles.get(key);
         if (!img) {
-          img = new Image();
-          img.className = 'tile';
-          img.alt = '';
-          img.draggable = false;
-          img.onload = () => {
+          const url = src.url(z, ((tx % count) + count) % count, ty);
+          let tries = 0;
+          img = el(box, 'image', { href: url, preserveAspectRatio: 'none' });
+          img.addEventListener('load', () => {
             if (IMAGERY[imagery.index] !== src) return;
             img.classList.add('in');
             if (++imagery.loaded === 1) store(SOURCE_KEY, src.id);
-          };
-          img.onerror = () => {
-            imagery.bad.add(key);
+          });
+          // A failed tile is asked for again, waiting longer each time. Only when it still fails and
+          // nothing from this source has loaded is the source treated as down.
+          img.addEventListener('error', () => {
+            if (IMAGERY[imagery.index] !== src) return;
+            if (++tries <= 3) {
+              setTimeout(() => { if (img.isConnected) img.setAttribute('href', `${url}?try=${tries}`); }, 600 * 2 ** (tries - 1));
+              return;
+            }
             img.remove();
             imagery.tiles.delete(key);
-            if (IMAGERY[imagery.index] === src && ++imagery.failed >= 3 && !imagery.loaded) nextSource();
-          };
-          img.src = src.url(z, ((tx % count) + count) % count, ty);
+            imagery.bad.add(key);
+            if (!imagery.loaded) nextSource();
+          });
           imagery.tiles.set(key, img);
-          box.appendChild(img);
         }
-        img.style.cssText = `left:${tx * size - left}px;top:${ty * size - top}px;width:${size}px;height:${size}px`;
+        img.setAttribute('x', tx * size - left);
+        img.setAttribute('y', ty * size - top);
+        img.setAttribute('width', size);
+        img.setAttribute('height', size);
       }
     }
     for (const [key, img] of imagery.tiles) if (!wanted.has(key)) { img.remove(); imagery.tiles.delete(key); }
@@ -187,7 +197,7 @@
   function showImagery() {
     const v = imagery.view, map = v && v.svg.closest('.map');
     if (!map) return;
-    const on = satelliteOn(), box = map.querySelector('.tiles'), attrib = map.querySelector('.attrib');
+    const on = satelliteOn(), box = state && state.svg === v.svg ? state.tiles : null, attrib = map.querySelector('.attrib');
     map.classList.toggle('sat', on);
     const button = map.querySelector('.map-mode');
     if (button) button.setAttribute('aria-pressed', String(on));
@@ -206,7 +216,7 @@
       imagery.mode = 'sat';
       if (imagery.index >= IMAGERY.length) {
         imagery.index = 0;
-        imagery.loaded = imagery.failed = 0;
+        imagery.loaded = 0;
         imagery.bad.clear();
       }
     }
@@ -232,6 +242,7 @@
     showImagery();
 
     state.world.setAttribute('transform', transform);
+    state.worldTop.setAttribute('transform', transform);
     state.clipUse.setAttribute('transform', transform);
     state.clipUse.setAttribute('href', `#bm-land-${level}`);
     state.land.setAttribute('href', `#bm-land-${level}`);

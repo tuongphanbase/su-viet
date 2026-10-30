@@ -9,6 +9,11 @@ Plain HTML, CSS and JavaScript with no build step:
 - `index.html`: the page
 - `app.js`: the timeline data and interactions
 - `style.css`: styles
+- `basemap.js`: draws the map's background (land, sea, lakes, rivers, Vietnam's
+  modern land borders) under the historical territories
+- `geo-data.js`: the geography `basemap.js` draws, generated from
+  [Natural Earth](https://www.naturalearthdata.com/) (public domain) by
+  `tools/build-geo.py` (`pip install shapely`, then `python tools/build-geo.py`)
 - `quiz.js`: the history quiz (10 random questions per round); add a new kind of question by adding an entry to `KINDS`
 
 ## Features
@@ -37,6 +42,8 @@ the marked answer really is that period's fact, options are distinct, and
 no question repeats within a round.
 `node tests/history-details.test.js` checks the extra era and people data
 (every era covered, ids unique, relations point to real people).
+`node tests/basemap.test.js` decodes `geo-data.js` and checks that every
+point lies inside its box and that Vietnam's land borders are there.
 
 ## Viewing it
 

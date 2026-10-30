@@ -3,7 +3,7 @@
 // Bump CACHE_VERSION when a deploy adds, renames or removes a file in the
 // lists below (or to make every phone re-download the whole app). Edits to
 // existing files such as app.js are picked up without a bump: see networkFirst.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_PREFIX = 'su-viet-';
 const CACHE = CACHE_PREFIX + CACHE_VERSION;
 

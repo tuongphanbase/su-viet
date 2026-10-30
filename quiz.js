@@ -227,10 +227,10 @@
       fb.appendChild(el('p', 'quiz-verdict ' + (right ? 'ok' : 'no'), right ? '✓ Chính xác!' : '✗ Chưa đúng. Đáp án: ' + q.answer));
       fb.appendChild(el('p', 'quiz-explain', q.explain));
       var actions = el('div', 'quiz-actions');
-      var look = el('button', 'quiz-link', 'Xem thời kỳ này trên dòng thời gian ↑');
+      var look = el('button', 'quiz-link', 'Xem thời kỳ này trên dòng thời gian');
       look.type = 'button';
       look.addEventListener('click', function () { showOnTimeline(q.period); });
-      var next = el('button', 'quiz-next', state.i + 1 < state.questions.length ? 'Câu tiếp →' : 'Xem kết quả →');
+      var next = el('button', 'quiz-next', state.i + 1 < state.questions.length ? 'Câu tiếp' : 'Xem kết quả');
       next.type = 'button';
       next.addEventListener('click', function () { state.i++; state.i < state.questions.length ? renderQuestion() : renderResult(); });
       actions.appendChild(look); actions.appendChild(next);
@@ -253,13 +253,13 @@
         : 'Hãy khám phá dòng thời gian rồi thử lại nhé.';
       wrap.appendChild(el('p', 'quiz-msg', msg + (isRecord && best ? ' Kỷ lục mới!' : '')));
       if (state.wrong.length) {
-        wrap.appendChild(el('p', 'quiz-review-title', 'CẦN ÔN LẠI'));
+        wrap.appendChild(el('p', 'quiz-review-title', 'Cần ôn lại'));
         var ul = el('ul', 'quiz-review');
         state.wrong.forEach(function (w) {
           var li = el('li');
           li.appendChild(el('strong', null, w.q.prompt));
           li.appendChild(el('span', null, 'Bạn chọn: ' + w.choice + ' · Đáp án: ' + w.q.answer));
-          var look = el('button', 'quiz-link', 'Xem trên dòng thời gian ↑');
+          var look = el('button', 'quiz-link', 'Xem trên dòng thời gian');
           look.type = 'button';
           look.addEventListener('click', function () { showOnTimeline(w.q.period); });
           li.appendChild(look);

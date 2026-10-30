@@ -42,7 +42,7 @@
     const html = baseStoryMarkup(i);
     const e = D.eras[i];
     if (!e || !e.timeline) return html;
-    const block = `<div class="story-timeline"><small>CÁC MỐC CHÍNH</small>${timelineMarkup(e.timeline)}</div>`;
+    const block = `<div class="story-timeline"><small>Các mốc chính</small>${timelineMarkup(e.timeline)}</div>`;
     const at = html.indexOf('<div class="story-transition">');
     return at < 0 ? html + block : html.slice(0, at) + block + html.slice(at);
   };
